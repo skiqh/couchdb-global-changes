@@ -64,7 +64,8 @@ module.exports = function(opts) {
 			var feed = follow(feed_options)
 
 			// pause the feed so we can emit confirm and start events
-			feed.pause()
+			if(feed.pending && feed.pending.request && feed.pending.request.pause)
+				feed.pause()
 
 			// iriscouch's follow does not keep a reference to the db object
 			// so we have to keep it ourselves
@@ -73,7 +74,8 @@ module.exports = function(opts) {
 				db_obj = start_db_obj
 				pool.emit('db-confirm', {db_name:db_name, confirm:start_db_obj})
 				// now begin the actual feed
-				feed.resume()
+				if(feed.pending && feed.pending.request && feed.pending.request.resume)
+					feed.resume()
 			})
 
 			feed.on('change', function(change) { 
