@@ -102,9 +102,9 @@ module.exports = function(opts) {
 				// emit the according event
 				pool.emit('db-removed', {db_name:db_name})
 			})
-			feed.on('catchup', function() {
+			feed.on('catchup', function(seq_id) {
 
-				pool.emit('db-catchup', {db_name:db_name})
+				pool.emit('db-catchup', {db_name:db_name, catchup:seq_id})
 
 				if(pool.caught_up_dbs() == pool.total_dbs())
 					pool.emit('catchup')
