@@ -3,6 +3,12 @@ couchdb-global-changes
 
 Does what it says on the tin: emit a `db-change` event for each document change in each db of a couchdb instance.
 
+Installation
+------------
+
+```bash
+npm install couchdb-global-changes
+```
 
 Usage
 -----
