@@ -76,6 +76,16 @@ module.exports = function(opts) {
 			if(feed.pending && feed.pending.request && feed.pending.request.pause)
 				feed.pause()
 
+			var _catchup = function(seq_id) {
+				if(persistence_layer)
+					persistence_layer.set(db_name, seq_id)
+
+				pool.emit('db-catchup', {db_name:db_name, catchup:seq_id})
+
+				if(pool.caught_up_dbs() == pool.total_dbs())
+					pool.emit('catchup')
+			}
+
 			// iriscouch's follow does not keep a reference to the db object
 			// so we have to keep it ourselves
 			var db_obj
@@ -85,6 +95,8 @@ module.exports = function(opts) {
 				// now begin the actual feed
 				if(feed.pending && feed.pending.request && feed.pending.request.resume)
 					feed.resume()
+				if(start_db_obj.doc_count == 0)
+					_catchup(0)
 			})
 
 			feed.on('change', function(change) { 
@@ -111,15 +123,7 @@ module.exports = function(opts) {
 				// emit the according event
 				pool.emit('db-removed', {db_name:db_name})
 			})
-			feed.on('catchup', function(seq_id) {
-				if(persistence_layer)
-					persistence_layer.set(db_name, seq_id)
-
-				pool.emit('db-catchup', {db_name:db_name, catchup:seq_id})
-
-				if(pool.caught_up_dbs() == pool.total_dbs())
-					pool.emit('catchup')
-			})
+			feed.on('catchup', _catchup)
 
 			// pass on all other feed events
 			feed.on('start', function() {
@@ -136,6 +140,9 @@ module.exports = function(opts) {
 			})
 			feed.on('wait', function() { 
 				pool.emit('db-wait', {db_name:db_name})
+			})
+			feed.on('timeout', function() { 
+				pool.emit('db-timeout', {db_name:db_name})
 			})
 
 			// keep a reference to the feed in our feed pool
