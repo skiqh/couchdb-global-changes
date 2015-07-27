@@ -69,6 +69,6 @@ Details
 
 * `db-*` | `function(details)`
     * each of iriscouch's follow event is forwarded with a `db-` prefix
-    * the original db's name is passed as `details.db_name`
+    * the originating db's name is passed as `details.db_name`
     * arguments are passed as `details.<eventname>`
     * Example: the `db-change` event gets passed `{ db_name: 'foo', change: <change-obj> }`
