@@ -23,6 +23,10 @@ feed.on('db-change', function(details) {
 feed.on('error', function(err) {
     console.error('something is wrong:', err)
 })
+feed.on('progress', function(ratio) {
+    var progress = '\r##################################################'.substr(0, 1+parseInt(ratio*50, 10))
+    process.stdout.write(progress)
+})
 ```
 
 
