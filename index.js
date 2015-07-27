@@ -95,8 +95,10 @@ module.exports = function(opts) {
 				// now begin the actual feed
 				if(feed.pending && feed.pending.request && feed.pending.request.resume)
 					feed.resume()
-				if(start_db_obj.doc_count == 0)
+				if(start_db_obj.doc_count == 0) {
+					feed.caught_up = true
 					_catchup(0)
+				}
 			})
 
 			feed.on('change', function(change) { 
