@@ -1,0 +1,32 @@
+{
+  "name": "couchdb-global-changes",
+  "version": "1.0.0",
+  "description": "Event emitter for _changes to _all_dbs of a couchdb instance, including newly added dbs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skiqh/couchdb-global-changes.git"
+  },
+  "keywords": [
+    "couchdb",
+    "changes",
+    "feed",
+    "_changes",
+    "_all_dbs",
+    "_db_updates",
+    "global"
+  ],
+  "author": "skiqh",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/skiqh/couchdb-global-changes/issues"
+  },
+  "homepage": "https://github.com/skiqh/couchdb-global-changes",
+  "dependencies": {
+    "follow": "^0.12.1",
+    "request": "^2.60.0"
+  }
+}
