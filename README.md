@@ -56,6 +56,9 @@ Details
     * `true` or `false`: all feeds will use this same value
     * `{ <db1_name>: true, <db2_name>: false }`: provide a value for each db's name individually
     * defaults to `false` for every feed
+* `options.persist` can be
+    * a string containg the path to a JSON file, where the db's sequences can be stored and later retrieved
+    * nothing else right now (might one day be the url to a couchdb document or a url to a redis instance)
 
 ### Functions
 
