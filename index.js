@@ -52,14 +52,14 @@ module.exports = function(opts) {
 		} else {
 			var feed_options = { db: opts.couch + db_name }
 
-			if(!param_since && opts.persist && persistence_layer)
+			if(!param_since && param_since !== 0 && opts.persist && persistence_layer)
 				return persistence_layer.get(db_name, 0, function(err, result) {
 					if(err)
 						return pool.emit('error', err)
-					
-					console.info("got a value for", db_name, result)
-					_add(db_name, result)
+					else
+						_add(db_name, result)
 				})
+			
 			else if(param_since || param_since == 0)
 				feed_options.since = param_since
 			else if(opts.since && (opts.since == 'now' || !isNaN(opts.since)))
@@ -172,7 +172,7 @@ module.exports = function(opts) {
 	
 	// to bootstrap, query all dbs of the couchdb instance
 	request(opts.couch+'_all_dbs', function(err, res, all_dbs) {
-		all_dbs.forEach(_add.bind(pool))
+		all_dbs.forEach(function(db_name) { _add(db_name) })
 	})
 
 	return pool
