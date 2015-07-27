@@ -3,22 +3,23 @@ var fs = require('fs')
 module.exports = function(STATEFILE){
 	var ret = {}
 
-	var _state
+	ret._state
 	try {
-		_state = require(STATEFILE)
+		ret._state = require(STATEFILE)
 	} catch(require_state_file_ex) {
-		_state = {}
+		console.error("require_state_file_ex", require_state_file_ex)
+		ret._state = {}
 	}
 
 	ret.get = function(key, def, cb) {
-		if(key in _state)
-			return cb(null, _state[key])
+		if(key in ret._state)
+			return cb(null, ret._state[key])
 		else
 			return cb(null, def)
 	}
 	ret.set = function(key, value, cb) {
-		_state[key] = value
-		fs.writeFile(STATEFILE, JSON.stringify(_state, null, '\t', cb))
+		ret._state[key] = value
+		fs.writeFile(STATEFILE, JSON.stringify(ret._state, null, '\t', cb))
 	}
 	return ret
 }
