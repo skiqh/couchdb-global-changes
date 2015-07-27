@@ -1,6 +1,6 @@
 {
   "name": "couchdb-global-changes",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Event emitter for _changes to _all_dbs of a couchdb instance, including newly added dbs",
   "main": "index.js",
   "scripts": {
