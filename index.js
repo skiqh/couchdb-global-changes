@@ -1,7 +1,7 @@
 var EventEmitter = require('events').EventEmitter
 var request = require('request').defaults({json:true})
 var follow = require('follow')
-
+var fs = require('fs')
 
 module.exports = function(opts) {
 	if(typeof opts == 'string')
@@ -10,6 +10,12 @@ module.exports = function(opts) {
 		opts.couch = 'http://127.0.0.1:5984'
 	if(opts.filter)
 		opts.filter = new RegExp(opts.filter)
+
+	var persistence_layer
+	if(opts.persist) {
+		if(typeof opts.persist == 'string' && opts.persist.match(/\.json$/))
+			persistence_layer = require('./persist.js')(opts.persist)
+	}
 
 	opts.couch = opts.couch.replace(/\/*$/, '/')
 	
@@ -36,7 +42,7 @@ module.exports = function(opts) {
 			feed.stop()
 		}
 	}
-	var _add = function(db_name) {
+	var _add = function(db_name, param_since) {
 
 		if(opts.filter && !opts.filter.test(db_name))
 			return pool.emit('debug', '[_add] filter out db ' + db_name)
@@ -46,7 +52,16 @@ module.exports = function(opts) {
 		} else {
 			var feed_options = { db: opts.couch + db_name }
 
-			if(opts.since && (opts.since == 'now' || !isNaN(opts.since)))
+			if(!param_since && opts.persist && persistence_layer)
+				return persistence_layer.get(db_name, 0, function(err, result) {
+					if(err)
+						pool.emit('error', err)
+					else
+						_add(db_name, result)
+				})
+			else if(param_since || param_since == 0)
+				feed_options.since = param_since
+			else if(opts.since && (opts.since == 'now' || !isNaN(opts.since)))
 				feed_options.since = opts.since
 			else if(opts.since && opts.since.hasOwnProperty(db_name))
 				feed_options.since = opts.since[db_name]
@@ -103,6 +118,8 @@ module.exports = function(opts) {
 				pool.emit('db-removed', {db_name:db_name})
 			})
 			feed.on('catchup', function(seq_id) {
+				if(persistence_layer)
+					persistence_layer.set(db_name, seq_id)
 
 				pool.emit('db-catchup', {db_name:db_name, catchup:seq_id})
 
