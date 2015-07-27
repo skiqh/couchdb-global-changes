@@ -55,9 +55,10 @@ module.exports = function(opts) {
 			if(!param_since && opts.persist && persistence_layer)
 				return persistence_layer.get(db_name, 0, function(err, result) {
 					if(err)
-						pool.emit('error', err)
-					else
-						_add(db_name, result)
+						return pool.emit('error', err)
+					
+					console.info("got a value for", db_name, result)
+					_add(db_name, result)
 				})
 			else if(param_since || param_since == 0)
 				feed_options.since = param_since
