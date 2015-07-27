@@ -4,6 +4,8 @@ var follow = require('follow')
 
 
 module.exports = function(opts) {
+	if(typeof opts == 'string')
+		opts = { couch: opts }
 	if(!opts.couch)
 		opts.couch = 'http://127.0.0.1:5984'
 	if(opts.filter)
@@ -17,33 +19,49 @@ module.exports = function(opts) {
 	var all_feeds = {}
 
 	// helper funtion: count the entryies in the all_feeds object
-	var total_dbs = function() {
+	pool.total_dbs = function() {
 		return Object.keys(all_feeds).length
 	}
 	// helper function: count all feeds that have caught up
-	var caught_up_dbs = function() {
+	pool.caught_up_dbs = function() {
 		return Object.keys(all_feeds).filter(function(db_name) { return all_feeds[db_name].caught_up }).length
 	}
 
-	pool.remove = function(db_name) {
+	var _remove = function(db_name) {
 		if(!(db_name in all_feeds)) {
-			pool.emit('warning', "[pool.remove] not following feed for db " + db_name)
+			pool.emit('warning', "[_remove] not following feed for db " + db_name)
 		} else {
 			var feed = all_feeds[db_name]
 			// stopping the feed will result in the 'stop' event below being emitted
 			feed.stop()
 		}
 	}
-	pool.add = function(db_name) {
+	var _add = function(db_name) {
 
 		if(opts.filter && !opts.filter.test(db_name))
-			return pool.emit('debug', '[pool.add] filter out db ' + db_name)
+			return pool.emit('debug', '[_add] filter out db ' + db_name)
 			
 		if(db_name in all_feeds) {
-			pool.emit('warning', "[pool.add] already following feed for db " + db_name)
+			pool.emit('warning', "[_add] already following feed for db " + db_name)
 		} else {
+			var feed_options = { db: opts.couch + db_name }
+
+			if(opts.since && (opts.since == 'now' || !isNaN(opts.since)))
+				feed_options.since = opts.since
+			else if(opts.since && opts.since.hasOwnProperty(db_name))
+				feed_options.since = opts.since[db_name]
+			else
+				feed_options.since = 0
+
+			if(opts.include_docs && (opts.include_docs === true || opts.include_docs === false ))
+				feed_options.include_docs = opts.include_docs
+			else if(opts.include_docs && opts.include_docs.hasOwnProperty(db_name))
+				feed_options.include_docs = opts.include_docs[db_name]
+			else
+				feed_options.include_docs = false
+
 			// instantiate the feed
-			var feed = follow({db:opts.couch + db_name, since:(opts.since || 0), include_docs:opts.include_docs })
+			var feed = follow(feed_options)
 
 			// pause the feed so we can emit confirm and start events
 			feed.pause()
@@ -53,24 +71,24 @@ module.exports = function(opts) {
 			var db_obj
 			feed.on('confirm', function(start_db_obj) {
 				db_obj = start_db_obj
-				pool.emit('dbfeed', {db_name:db_name, type:'confirm' })
+				pool.emit('db-confirm', {db_name:db_name, confirm:start_db_obj})
 				// now begin the actual feed
 				feed.resume()
 			})
 
 			feed.on('change', function(change) { 
 				// emit *the* global change event
-				pool.emit('change', {change:change, db_name:db_name})
+				pool.emit('db-change', {db_name:db_name, change:change})
 
-				// only during the catchup phase, emit progress events
+				// emit progress events only during the catchup phase
 				if(!feed.caught_up) {
-					// calculate some progress variables
+					// calculate some progress ratios
 					var docs_ratio = parseInt(100*change.seq/db_obj.update_seq)/100
-					var db_ratio = caught_up_dbs()/total_dbs()
-					var sub_ratio = docs_ratio/total_dbs()
+					var db_ratio = pool.caught_up_dbs()/pool.total_dbs()
+					var sub_ratio = docs_ratio/pool.total_dbs()
 
 					// and emit them
-					pool.emit('dbfeed', {db_name:db_name, type:'progress', details: docs_ratio })
+					pool.emit('db-progress', {db_name:db_name, ratio: docs_ratio })
 					pool.emit('progress', db_ratio+sub_ratio)
 				}
 
@@ -80,31 +98,31 @@ module.exports = function(opts) {
 				// remove the reference to the feed
 				delete all_feeds[db_name]
 				// emit the according event
-				pool.emit('dbfeed', {db_name:db_name, type:'removed'})
+				pool.emit('db-removed', {db_name:db_name})
 			})
 			feed.on('catchup', function() {
 
-				pool.emit('dbfeed', {db_name:db_name, type:'catchup' })
+				pool.emit('db-catchup', {db_name:db_name})
 
-				if(caught_up_dbs() == total_dbs())
+				if(pool.caught_up_dbs() == pool.total_dbs())
 					pool.emit('catchup')
 			})
 
 			// pass on all other feed events
 			feed.on('start', function() {
-				pool.emit('dbfeed', {db_name:db_name, type:'start' })
+				pool.emit('db-start', {db_name:db_name})
 			})
 			feed.on('error', function(error) { 
-				pool.emit('dbfeed', {db_name:db_name, type:'error', details: error })
+				pool.emit('db-error', {db_name:db_name, error: error})
 			})
 			feed.on('stop', function() { 
-				pool.emit('dbfeed', {db_name:db_name, type:'stop' })
+				pool.emit('db-stop', {db_name:db_name})
 			})
 			feed.on('retry', function(info) { 
-				pool.emit('dbfeed', {db_name:db_name, type:'retry', details: info })
+				pool.emit('db-retry', {db_name:db_name, retry: info})
 			})
-			feed.on('wait', function(info) { 
-				pool.emit('dbfeed', {db_name:db_name, type:'wait', details: info })
+			feed.on('wait', function() { 
+				pool.emit('db-wait', {db_name:db_name})
 			})
 
 			// keep a reference to the feed in our feed pool
@@ -120,11 +138,11 @@ module.exports = function(opts) {
 	global_changes.on('change', function(db_change) {
 		// when a new db has been created, add it to the pool
 		if(db_change.type == 'created')
-			pool.add(db_change.db_name)
+			_add(db_change.db_name)
 
 		// if it has been deleted, remove it
 		else if(db_change.type == 'deleted')
-			pool.remove(db_change.db_name)
+			_remove(db_change.db_name)
 
 		// other events: 'updated', 'ddoc-updated'
 	})
@@ -134,8 +152,7 @@ module.exports = function(opts) {
 	
 	// to bootstrap, query all dbs of the couchdb instance
 	request(opts.couch+'_all_dbs', function(err, res, all_dbs) {
-		pool.emit('total-dbs', all_dbs.length)
-		all_dbs.forEach(pool.add.bind(pool))
+		all_dbs.forEach(_add.bind(pool))
 	})
 
 	return pool
