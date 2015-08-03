@@ -26,7 +26,11 @@
   },
   "homepage": "https://github.com/skiqh/couchdb-global-changes",
   "dependencies": {
+    "debounce": "^1.0.0",
+    "deepequal": "0.0.1",
+    "extend": "^3.0.0",
     "follow": "^0.12.1",
+    "minimist": "^1.1.2",
     "request": "^2.60.0"
   }
 }
