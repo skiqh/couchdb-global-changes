@@ -140,7 +140,7 @@ Details
 Tests
 -----
 
-This is still work in progress and I haven't written any tests, like, ever. How do you test something like this, anyway?
+This is still work in progress.
 
 
 Changes
