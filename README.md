@@ -146,7 +146,7 @@ This is still work in progress and I haven't written any tests, like, ever. How 
 Changes
 -------
 
-### 1.0.0
+### 2.0.0
 
 * renamed `options.filter` to `options.include` (and add accordingly `options.exclude`)
 * added `"_local"` as an option to `options.persist`
