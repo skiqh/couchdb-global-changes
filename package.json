@@ -4,7 +4,7 @@
   "description": "Event emitter for _changes to _all_dbs of a couchdb instance, including newly added dbs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -32,5 +32,12 @@
     "follow": "^0.12.1",
     "minimist": "^1.1.2",
     "request": "^2.60.0"
+  },
+  "devDependencies": {
+    "async": "^1.4.0",
+    "mocha": "^2.2.5",
+    "mock-couch": "^0.1.4",
+    "nano": "^6.1.5",
+    "sinon": "^1.15.4"
   }
 }

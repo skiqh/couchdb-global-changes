@@ -119,7 +119,7 @@ module.exports = function(opts) {
 
 		var _catchup = function(seq_id) {
 			persist_seq(seq_id)
-			pool.emit('db-catchup', {db_name:db_name, catchup:seq_id, seq:seq_id, caught_up_dbs:pool.caught_up_dbs(), total_dbs:pool.total_dbs()})
+			pool.emit('db-catchup', {db_name:db_name, catchup:seq_id, seq:seq_id})
 
 			if(pool.caught_up_dbs() == pool.total_dbs())
 				pool.emit('catchup')
@@ -156,8 +156,8 @@ module.exports = function(opts) {
 				var sub_ratio = docs_ratio/pool.total_dbs()
 
 				// and emit them
-				pool.emit('db-progress', {db_name:db_name, ratio: docs_ratio })
-				pool.emit('progress', db_ratio+sub_ratio)
+				pool.emit('db-progress', {db_name:db_name, progress: docs_ratio })
+				pool.emit('progress', {progress: db_ratio+sub_ratio, caught_up_dbs:pool.caught_up_dbs(), total_dbs:pool.total_dbs()})
 			} else {
 				persist_seq(change.seq)
 			}
