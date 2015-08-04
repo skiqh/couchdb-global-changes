@@ -155,14 +155,15 @@ The tests are quite incomplete, as this still is a work in progress.
 
 ```bash
 # *nix
-export couch=http://admin:passw0rd@127.0.0.1:5984
+export COUCH=http://admin:passw0rd@127.0.0.1:5984
 # windows
-set couch=http://admin:passw0rd@127.0.0.1:5984
+set COUCH=http://admin:passw0rd@127.0.0.1:5984
 
 # the tests will create a few dbs prefixed with 'cgc-tests-'
 # these can be removed afterwards
 
 cd node_modules/couchdb-global-changes
+npm install
 npm test
 ```
 
