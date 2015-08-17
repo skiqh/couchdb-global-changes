@@ -15,7 +15,7 @@ Simple usage
 
 ```javascript
 var couchdb_changes = require('couchdb-global-changes')
-var feed = couchdb_changes('http://user:pass@127.0.0.1')
+var feed = couchdb_changes('http://user:pass@127.0.0.1:5984')
 
 feed.on('db-change', function(details) {
     console.log('document changed: %s / %s', details.db_name, details.change.id)
@@ -34,8 +34,8 @@ var couchdb_changes = require('couchdb-global-changes')
 var twilio = require('twilio')('ACCOUNT_SID', 'AUTH_TOKEN')
 
 var options = 
-    {   couch: 'http://user:pass@127.0.0.1'
-    ,   filter: '^userdb-'
+    {   couch: 'http://user:pass@127.0.0.1:5984'
+    ,   include: '^userdb-'
     ,   persist: '_local'
     ,   namespace: 'sms-daemon'
     ,   include_docs: true

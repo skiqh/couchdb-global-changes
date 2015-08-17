@@ -1,4 +1,6 @@
 var EventEmitter = require('events').EventEmitter
+var EventEmitter2 = require('eventemitter2').EventEmitter2
+
 var request = require('request').defaults({json:true})
 var debounce = require('debounce')
 var follow = require('follow')
@@ -29,7 +31,8 @@ module.exports = function(opts) {
 		else if(typeof opts.persist == 'string' && opts.persist == '_local')
 			persistence_layer = require('./persist_local.js')(opts)
 	}
-	var pool = new EventEmitter()
+	// var pool = new EventEmitter()
+	var pool = new EventEmitter2({wildcard: true})
 	pool.namespace = opts.namespace
 	
 
@@ -219,6 +222,11 @@ module.exports = function(opts) {
 	
 	// to bootstrap, query all dbs of the couchdb instance
 	request(opts.couch+'_all_dbs', function(err, res, all_dbs) {
+		if(err)
+			return pool.emit('error', 'the query to _all_dbs failed:\n' + err)
+		else if(!all_dbs)
+			return pool.emit('warning', 'the query to _all_dbs has not returned any databases')
+
 		all_dbs.forEach(function(db_name) { _add(db_name) })
 	})
 
