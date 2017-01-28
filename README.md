@@ -46,7 +46,7 @@ var feed = couchdb_changes(options)
 feed.on('db-change', function(details) {
 
     var doc = details.change.doc
-    if(!doc.type == 'sms-message')
+    if(doc.type !== 'sms-message')
         return
 
     twilio.sendMessage(
@@ -67,7 +67,7 @@ feed.on('db-persist', function(details) {
     // after this, we can be sure the update sequence has been saved.
     // when this script is started again, it will pick up just where
     // it left off and not process any document a second time.
-    console.log("%s processed all documents in the database %s (up to update-sequence %s)", feed.namespace, details.db_name, details.persist.seq)
+    console.log("%s processed all documents in the database %s (up to update-sequence %s)", feed.namespace, details.db_name, details.seq)
 })
 
 ```
@@ -96,6 +96,7 @@ Details
 #### `options.since` can be one of
 * `'now'` or an integer sequence id: all feeds will use this same value
 * `{ db1: 'now', db2: 1234 }`: provide a value for each db's name individually (good for managing resuming operations)
+* numbers can be negative (e.g. -n) to replay the last n changes
 * defaults to `0` for every feed
 
 #### `options.include_docs` can be one of
@@ -143,6 +144,7 @@ Details
 * the db `details.db_name` has been removed from the feed, probably due to deletion of the db
 
 #### `db-*` | `function(details)`
+* where `*` is one of `start`, `confirm_request`, `confirm`, `change`, `catchup`, `wait`, `timeout`, `retry`, `stop`, `error`
 * each of [iriscouch's follow events](https://github.com/iriscouch/follow#events) is forwarded with a `db-` prefix
 * the originating db's name is passed as `details.db_name`
 * arguments are passed as `details.<eventname>`
@@ -170,6 +172,9 @@ npm test
 
 Changes
 -------
+
+### 3.0.1
+* allow negative numbers for `options.since`
 
 ### 3.0.0
 * removed `caught_up_dbs` and `total_dbs` info from the `db-catchup` event

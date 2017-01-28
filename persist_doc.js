@@ -4,11 +4,13 @@ var deepequal = require('deepequal')
 
 module.exports = function(opts){
 	var ret = {}
-	var LOCAL_DOC_ID = 'couchdb-global-changes:' + opts.namespace
-
+	var PERSISTENT_DOC_ID = 'couchdb-global-changes:' + opts.namespace
+	console.log("opts.exclude", opts.exclude)
+	opts.exclude = opts.exclude || []
+	opts.exclude.push(new RegExp(PERSISTENT_DOC_ID)) 
 
 	ret.get = function(db_name, def, cb) {
-		var url = opts.couch + db_name + '/_local/' + LOCAL_DOC_ID
+		var url = opts.couch + db_name + '/' + PERSISTENT_DOC_ID
 		request.get(url, function(err, response, json) {
 			// console.log("trying to get", url, err, json)
 			if(err || !json || json.error)
@@ -36,9 +38,9 @@ module.exports = function(opts){
 				// no need to write, we wouldn't change a thing
 				return cb()
 
-			var req =
+			var req = 
 				{	method: 'PUT'
-				,	url:opts.couch + db_name + '/_local/' + LOCAL_DOC_ID
+				,	url:opts.couch + db_name + '/' + PERSISTENT_DOC_ID
 				,	body: local_doc
 				,	qs: {}
 				}

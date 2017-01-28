@@ -3,6 +3,9 @@
   "version": "2.0.2",
   "description": "Event emitter for _changes to _all_dbs of a couchdb instance, including newly added dbs",
   "main": "index.js",
+  "publishConfig": {
+    "registry": "http://npm.wirkraft.com"
+  },
   "scripts": {
     "test": "mocha"
   },
@@ -38,6 +41,6 @@
     "mocha": "^2.2.5",
     "mock-couch": "^0.1.4",
     "nano": "^6.1.5",
-    "sinon": "^1.15.4"
+    "merge": "^1.2.0"
   }
 }
