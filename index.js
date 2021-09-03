@@ -72,7 +72,7 @@ module.exports = function(opts) {
         // if the second argument is empty, we have been called directly
         // if it is not, this is the callback of the query to the persistence layer
         if(!feed_options) {
-            feed_options = { db: opts.couch + db_name }
+            feed_options = { db: opts.couch + encodeURIComponent(db_name) }
 
             if(persistence_layer)
                 return persistence_layer.get(db_name, {}, function(err, res) {
