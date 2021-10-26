@@ -22,7 +22,7 @@ module.exports = function(opts){
 	}
 	ret.set = function(key, value, cb) {
 		_state[opts.namespace][key] = value
-		fs.writeFile(STATEFILE, JSON.stringify(_state, null, '\t', cb))
+		fs.writeFile(STATEFILE, JSON.stringify(_state, null, '\t'), cb)
 	}
 	return ret
 }
