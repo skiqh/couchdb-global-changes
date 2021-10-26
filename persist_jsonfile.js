@@ -7,7 +7,8 @@ module.exports = function(opts){
 	var STATEFILE = opts.persist
 	
 	try {
-		_state = require(STATEFILE)
+		var rawdata = fs.readFileSync(STATEFILE);
+		_state = JSON.parse(rawdata);
 		if(!opts.namespace in _state)
 			_state[opts.namespace] = {}
 	} catch(require_state_file_ex) {
